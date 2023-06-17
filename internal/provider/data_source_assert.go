@@ -40,19 +40,11 @@ func (d *AssertDataSource) Metadata(ctx context.Context, req datasource.Metadata
 
 func (d *AssertDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Asserts that a condition is true, otherwise logs a warning or error to terraform.",
+		MarkdownDescription: "Asserts that a condition is true, otherwise logs a warning or error.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "This is set to a random value at read time.",
 				Computed:            true,
-			},
-			"condition": schema.BoolAttribute{
-				MarkdownDescription: "The assertion that is expected to be true.",
-				Required:            true,
-			},
-			"detail": schema.StringAttribute{
-				MarkdownDescription: "A more in-depth description of the issue.",
-				Required:            true,
 			},
 			"severity": schema.StringAttribute{
 				MarkdownDescription: "The severity of the issue. Can be 'error' or 'warn'. Setting to 'error' will halt execution of terraform, while setting to 'warn' will not.",
@@ -61,9 +53,17 @@ func (d *AssertDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					stringvalidator.OneOf("error", "warn"),
 				},
 			},
+			"condition": schema.BoolAttribute{
+				MarkdownDescription: "The assertion that is expected to be true.",
+				Required:            true,
+			},
 			"summary": schema.StringAttribute{
 				MarkdownDescription: "A short summary to identify the issue.",
-				Required:            false,
+				Optional:            true,
+			},
+			"detail": schema.StringAttribute{
+				MarkdownDescription: "A more in-depth description of the issue.",
+				Optional:            true,
 			},
 			// TODO assert_equal
 			// TODO etc.
@@ -81,9 +81,22 @@ func (d *AssertDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	if !data.Condition.ValueBool() {
+		var summary, detail string
 		path := path.Path{}.AtName("condition")
-		summary := data.Summary.ValueString()
-		detail := data.Detail.ValueString()
+
+		// Calculate summary
+		if data.Summary.IsNull() {
+			summary = "Unsatisfied Condition"
+		} else {
+			summary = fmt.Sprintf("Unsatisfied Condition: %s", data.Summary.ValueString())
+		}
+
+		// Calculate detail
+		if data.Detail.IsNull() {
+			detail = "The condition evaluated to false."
+		} else {
+			detail = data.Detail.ValueString()
+		}
 
 		if data.Severity.ValueString() == "error" {
 			resp.Diagnostics.AddAttributeError(path, summary, detail)
