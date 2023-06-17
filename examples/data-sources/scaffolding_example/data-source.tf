@@ -1,7 +1,7 @@
 terraform {
   required_providers {
-    check = {
-      source = "chrismilson/check"
+    assert = {
+      source = "chrismilson/assert"
     }
   }
 }
@@ -10,14 +10,16 @@ locals {
   value = false
 }
 
-data "check" "something" {
-  assert {
-    condition     = local.value
-    error_message = "This is an error!"
-  }
+data "assert" "error" {
+  for_each = toset(["a", "b"])
 
-  assert {
-    condition       = "two" == "one"
-    warning_message = "This is a warning!"
-  }
+  condition     = local.value
+  error_message = "This is an error!"
+}
+
+data "assert" "warn" {
+  for_each = toset(["a", "b"])
+
+  condition       = local.value
+  warning_message = "This is a warning!"
 }

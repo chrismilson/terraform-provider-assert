@@ -1,4 +1,4 @@
-module github.com/chrismilson/terraform-provider-check
+module github.com/chrismilson/terraform-provider-assert
 
 go 1.19
 

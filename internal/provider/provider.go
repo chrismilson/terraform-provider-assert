@@ -12,42 +12,42 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ provider.Provider = &CheckProvider{}
+var _ provider.Provider = &AssertProvider{}
 
-type CheckProvider struct {
+type AssertProvider struct {
 	version string
 }
 
-type CheckProviderModel struct {
+type AssertProviderModel struct {
 }
 
-func (p *CheckProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "check"
+func (p *AssertProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "assert"
 	resp.Version = p.version
 }
 
-func (p *CheckProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *AssertProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: ``,
 	}
 }
 
-func (p *CheckProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *AssertProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 }
 
-func (p *CheckProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *AssertProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return nil
 }
 
-func (p *CheckProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *AssertProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewCheckDataSource,
+		NewAssertDataSource,
 	}
 }
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &CheckProvider{
+		return &AssertProvider{
 			version: version,
 		}
 	}

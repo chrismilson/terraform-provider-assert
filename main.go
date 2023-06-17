@@ -8,7 +8,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/chrismilson/terraform-provider-check/internal/provider"
+	"github.com/chrismilson/terraform-provider-assert/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
@@ -39,7 +39,7 @@ func main() {
 
 	opts := providerserver.ServeOpts{
 		// TODO: Update this string with the published name of your provider.
-		Address: "registry.terraform.io/chrismilson/check",
+		Address: "registry.terraform.io/chrismilson/assert",
 		Debug:   debug,
 	}
 
