@@ -8,16 +8,16 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ datasource.DataSource                     = &AssertDataSource{}
-	_ datasource.DataSourceWithConfigValidators = &AssertDataSource{}
+	_ datasource.DataSource = &AssertDataSource{}
 )
 
 func NewAssertDataSource() datasource.DataSource {
@@ -27,10 +27,11 @@ func NewAssertDataSource() datasource.DataSource {
 type AssertDataSource struct{}
 
 type AssertDataSourceModel struct {
-	Id             types.String `tfsdk:"id"`
-	Condition      types.Bool   `tfsdk:"condition"`
-	ErrorMessage   types.String `tfsdk:"error_message"`
-	WarningMessage types.String `tfsdk:"warning_message"`
+	Id        types.String `tfsdk:"id"`
+	Condition types.Bool   `tfsdk:"condition"`
+	Detail    types.String `tfsdk:"detail"`
+	Severity  types.String `tfsdk:"severity"`
+	Summary   types.String `tfsdk:"summary"`
 }
 
 func (d *AssertDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -49,26 +50,24 @@ func (d *AssertDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				MarkdownDescription: "The assertion that is expected to be true.",
 				Required:            true,
 			},
-			"error_message": schema.StringAttribute{
-				MarkdownDescription: "The message included in the error if the condition is not satisfied.",
-				Optional:            true,
+			"detail": schema.StringAttribute{
+				MarkdownDescription: "A more in-depth description of the issue.",
+				Required:            true,
 			},
-			"warning_message": schema.StringAttribute{
-				MarkdownDescription: "The message included in the warning if the condition is not satisfied.",
-				Optional:            true,
+			"severity": schema.StringAttribute{
+				MarkdownDescription: "The severity of the issue. Can be 'error' or 'warn'. Setting to 'error' will halt execution of terraform, while setting to 'warn' will not.",
+				Required:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("error", "warn"),
+				},
+			},
+			"summary": schema.StringAttribute{
+				MarkdownDescription: "A short summary to identify the issue.",
+				Required:            false,
 			},
 			// TODO assert_equal
 			// TODO etc.
 		},
-	}
-}
-
-func (d *AssertDataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
-	return []datasource.ConfigValidator{
-		datasourcevalidator.ExactlyOneOf(
-			path.MatchRoot("error_message"),
-			path.MatchRoot("warning_message"),
-		),
 	}
 }
 
@@ -81,21 +80,16 @@ func (d *AssertDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	condition_path := path.Path{}.AtName("condition")
 	if !data.Condition.ValueBool() {
-		if data.ErrorMessage != types.StringNull() {
-			resp.Diagnostics.AddAttributeError(
-				condition_path,
-				"Unsatisfied Condition",
-				data.ErrorMessage.ValueString(),
-			)
+		path := path.Path{}.AtName("condition")
+		summary := data.Summary.ValueString()
+		detail := data.Detail.ValueString()
+
+		if data.Severity.ValueString() == "error" {
+			resp.Diagnostics.AddAttributeError(path, summary, detail)
 		}
-		if data.WarningMessage != types.StringNull() {
-			resp.Diagnostics.AddAttributeWarning(
-				condition_path,
-				"Unsatisfied Condition",
-				data.WarningMessage.ValueString(),
-			)
+		if data.Severity.ValueString() == "warn" {
+			resp.Diagnostics.AddAttributeWarning(path, summary, detail)
 		}
 	}
 

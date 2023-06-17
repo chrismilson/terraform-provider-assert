@@ -10,49 +10,55 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccAssertDataSource_Condition_Valid_Warning_NotFired(t *testing.T) {
+func TestAccAssertDataSource_WarnSeverity_ConditionValid_NoWarning(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
 				data "assert" "test" {
-					condition       = true
-					warning_message = "test warning"
+					severity  = "warn"
+					condition = true
+					summary   = "Test Summary"
+					detail    = "Test details."
 				}
 				`,
-				// There is no way to actually check if a warning fired.
+				// There is no way to actually check if a warning fired or not.
 			},
 		},
 	})
 }
 
-func TestAccAssertDataSource_Condition_Invalid_Warning_Fired(t *testing.T) {
+func TestAccAssertDataSource_WarnSeverity_ConditionInvalid_Warning(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
 				data "assert" "test" {
-					condition       = false
-					warning_message = "test warning"
+					severity  = "warn"
+					condition = false
+					summary   = "Test Summary"
+					detail    = "Test details."
 				}
 				`,
-				// There is no way to actually check if a warning fired.
+				// There is no way to actually check if a warning fired or not.
 			},
 		},
 	})
 }
 
-func TestAccAssertDataSource_Condition_Valid_Error_NotFired(t *testing.T) {
+func TestAccAssertDataSource_ErrorSeverity_ConditionValid_NoError(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
 				data "assert" "test" {
-					condition     = true
-					error_message = "test error"
+					severity  = "error"
+					condition = true
+					summary   = "Test Summary"
+					detail    = "Test details."
 				}
 				`,
 			},
@@ -60,52 +66,39 @@ func TestAccAssertDataSource_Condition_Valid_Error_NotFired(t *testing.T) {
 	})
 }
 
-func TestAccAssertDataSource_Condition_Invalid_Error_Fired(t *testing.T) {
+func TestAccAssertDataSource_ErrorSeverity_ConditionInvalid_ErrorIncludesSummary(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
 				data "assert" "test" {
-					condition     = false
-					error_message = "test error"
+					severity  = "error"
+					condition = false
+					summary   = "Test Summary"
+					detail    = "Test details."
 				}
 				`,
-				ExpectError: regexp.MustCompile("test error"),
+				ExpectError: regexp.MustCompile("Test Summary"),
 			},
 		},
 	})
 }
 
-func TestAccAssertDataSource_ErrorAndWarningMessageConfig_Invalid_Error_Fired(t *testing.T) {
+func TestAccAssertDataSource_ErrorSeverity_ConditionInvalid_ErrorIncludesDetail(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
 				data "assert" "test" {
-					condition       = true
-					error_message   = "test error"
-					warning_message = "test warning"
+					severity  = "error"
+					condition = false
+					summary   = "Test Summary"
+					detail    = "Test details."
 				}
 				`,
-				ExpectError: regexp.MustCompile("Invalid Attribute Combination"),
-			},
-		},
-	})
-}
-
-func TestAccAssertDataSource_NoMessageConfig_Invalid_Error_Fired(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: `
-				data "assert" "test" {
-					condition       = true
-				}
-				`,
-				ExpectError: regexp.MustCompile("Missing Attribute Configuration"),
+				ExpectError: regexp.MustCompile("Test details\\."),
 			},
 		},
 	})

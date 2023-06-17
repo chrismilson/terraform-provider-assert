@@ -11,15 +11,8 @@ locals {
 }
 
 data "assert" "error" {
-  for_each = toset(["a", "b"])
-
-  condition     = local.value
-  error_message = "This is an error!"
-}
-
-data "assert" "warn" {
-  for_each = toset(["a", "b"])
-
-  condition       = local.value
-  warning_message = "This is a warning!"
+  severity  = "error"
+  condition = local.value
+  summary   = "Invalid Condition"
+  detail    = "This is an error!"
 }
