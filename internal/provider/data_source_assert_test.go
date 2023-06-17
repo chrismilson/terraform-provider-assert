@@ -19,8 +19,6 @@ func TestAccAssertDataSource_WarnSeverity_ConditionValid_NoWarning(t *testing.T)
 				data "assert" "test" {
 					severity  = "warn"
 					condition = true
-					summary   = "Test Summary"
-					detail    = "Test details."
 				}
 				`,
 				// There is no way to actually check if a warning fired or not.
@@ -38,8 +36,6 @@ func TestAccAssertDataSource_WarnSeverity_ConditionInvalid_Warning(t *testing.T)
 				data "assert" "test" {
 					severity  = "warn"
 					condition = false
-					summary   = "Test Summary"
-					detail    = "Test details."
 				}
 				`,
 				// There is no way to actually check if a warning fired or not.
@@ -57,8 +53,6 @@ func TestAccAssertDataSource_ErrorSeverity_ConditionValid_NoError(t *testing.T) 
 				data "assert" "test" {
 					severity  = "error"
 					condition = true
-					summary   = "Test Summary"
-					detail    = "Test details."
 				}
 				`,
 			},
@@ -76,7 +70,6 @@ func TestAccAssertDataSource_ErrorSeverity_ConditionInvalid_ErrorIncludesSummary
 					severity  = "error"
 					condition = false
 					summary   = "Test Summary"
-					detail    = "Test details."
 				}
 				`,
 				ExpectError: regexp.MustCompile("Test Summary"),
@@ -94,7 +87,6 @@ func TestAccAssertDataSource_ErrorSeverity_ConditionInvalid_ErrorIncludesDetail(
 				data "assert" "test" {
 					severity  = "error"
 					condition = false
-					summary   = "Test Summary"
 					detail    = "Test details."
 				}
 				`,
